@@ -7,7 +7,8 @@ from lineup.models import Queue, QueueParam
 from lineup.conf import Status
     
 class JobFactory(object):
-    """docstring for JobFactory"""
+    """Instance of this class should be used by your application(s) to create queued jobs."""
+    # TODO review
     
     def __init__(self):
         super(JobFactory, self).__init__()

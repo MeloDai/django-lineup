@@ -8,7 +8,19 @@ from lineup import registry
 import datetime
 
 class Queue(models.Model):
-
+    """`Queue` model stores information about queued jobs and their properties.
+    
+    The common case is, you would like to relate a `Queue` object to any other model object
+    in your application. Use `context_object` generic value for this purpose.
+    
+    `err` field is automatically filled with exception(s) traceback history if any 
+    occured during the job execution.
+    
+    `Queue` objects use `QueueParam`(s) as optional & additional, user-defined
+    information for the queue object.
+    
+    Queues should be created either via admin interface or `lineup.factory` module.
+    """
     date_created = models.DateTimeField(auto_now_add = True, blank=True)
     date_accessed = models.DateTimeField(auto_now = True, blank=True)
     status = models.IntegerField(blank=False, null=False, default=0, choices=Status.choices)
@@ -45,7 +57,12 @@ class Queue(models.Model):
         return "[%s] %s request for %s (by %s)" % (self.status, self.job, self.context_object, self.user)
 
 class QueueParam(models.Model):
+    """QueueParam purpose is to store additional information about Queue objects.
+    `param_value` has higher priority than `param_value_long`, so you should make sure 
+    you use only one of them.
     
+    Example usage: e-mail text content for queued e-mail sending job.
+    """
     queue = models.ForeignKey(Queue)
     param_name = models.CharField(blank=False, max_length=100)
     param_value = models.CharField(blank=True, null=True, max_length=255)

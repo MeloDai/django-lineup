@@ -16,6 +16,10 @@ log_server = memcache.Client( [ MEMCACHED_SERVER ] )
 queue_capacity = 0
 
 def request_processed(queue_id, queue):
+    """Method called when queued job has finished processing.
+    Decreases the queue capacity and set either Status.done on success or
+    Status.exception on failure.
+    """
     global queue_capacity
     log.debug('Request processing finished: %s' % queue_id)    
     queue_capacity -= 1        
@@ -30,7 +34,8 @@ def request_processed(queue_id, queue):
         queue.set_status(Status.exception, err = err)
         log.warn(err)
     
-def process_request(id, queue):  
+def process_request(id, queue):
+    """Executes queued job"""  
     from lineup import registry
     from lineup.conf import Status
     import traceback
@@ -46,6 +51,7 @@ def process_request(id, queue):
         raise
             
 def process_queued_requests():
+    """Submits queued jobs to the job server if possible."""
     global queue_capacity        
     log.debug('Current queue capacity: %s/%s' % (queue_capacity, MAX_QUEUE_CAPACITY))
 
@@ -74,6 +80,7 @@ def process_queued_requests():
             log.info("No queued jobs.")        
 
 def collect_job_debug():
+    """Memcached debug log reader"""
     try:
         messages = log_server.get("job_debug")  
         if messages:
@@ -86,6 +93,7 @@ def collect_job_debug():
         log.error(exc)
                 
 def retry_failed_requests():
+    """Retries requests that have failed or are processed too long."""
     log.debug("Looking for failed or processed too long.")
     requests = Queue.objects.all().filter(status__in=[Status.processing, Status.exception])
     if requests:
@@ -98,6 +106,7 @@ def retry_failed_requests():
         log.debug("Nothing found. Next retry check in %s seconds." % RETRY_PERIOD)
 
 def cleanup():
+    """Deletes finished queue items."""
     log.debug("Cleanup check.")
     # find finished queue items, remove if old enough
     requests = Queue.objects.all().filter(status=Status.done)
