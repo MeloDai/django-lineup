@@ -14,7 +14,7 @@ class JobFactory(object):
         super(JobFactory, self).__init__()
 
     @transaction.commit_manually    
-    def create_job(self, job, user, context_object, params, project = None, status = Status.new):
+    def create_job(self, job, user, context_object, params, status = Status.new):
         _debug("Job Factory called for %s" % job)
         try:
             
@@ -23,7 +23,6 @@ class JobFactory(object):
             q.user = user
             q.context_object = context_object
             q.status = status
-            q.project = project
             q.save()
         
             for param_name, param_value in params.items():
