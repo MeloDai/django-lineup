@@ -73,7 +73,7 @@ TEMPLATE_DIRS = (
 
 INSTALLED_APPS = (
     'lineup',
-    'someapp',
+    'exampleapp',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
