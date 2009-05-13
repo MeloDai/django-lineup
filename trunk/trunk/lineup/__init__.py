@@ -6,7 +6,7 @@ from lineup.conf import *
 import memcache, datetime
 
 class Job(object):
-    """docstring for Job"""
+    """Basic abstraction layer for a single queue task."""
     def __init__(self, name, func, callback = False):
         super(Job, self).__init__()
         self.name = name
@@ -14,6 +14,7 @@ class Job(object):
         self.callback = callback
         
     def execute(self, id, request):
+        """Executes queued job and callback function if provided."""
         _debug('*' * 50)
         _debug("Excecuting %s %s %s" % (self, id, request) )
         request.set_status(1)
@@ -32,17 +33,21 @@ class Job(object):
         return self.name
 
 class Registry(object):
-    """docstring for Registry"""
+    """Provides interface for queue jobs registration (storage)/
+    management across django project."""
     def __init__(self):
         super(Registry, self).__init__()
         self.registry = []
         
     def register_job(self, name, func, callback=False):
+        """Stores Job object within registry."""
         job = Job(name, func, callback)
         self.registry.append(job)
         cache.set('job_registry', self.registry)
         
     def _get_registered_jobs_tuple(self):
+        """Internal jobs tuple generator. Should be accessed via
+        registered_jobs property."""
         _registry = cache.get('job_registry', None)
         if _registry:
             print 'Got registry from cache! yay', _registry
@@ -58,7 +63,7 @@ class Registry(object):
     registered_jobs = property(_get_registered_jobs_tuple)
     
     def get_job(self, strid, prop = 'name'):
-        """ get job from registry by attribute (e.g. name/func/callback) """
+        """ Retrieves Job object from registry by attribute (e.g. name/func/callback) """
         for job in self.registry:
             if getattr(job, prop) == strid:
                 return job
@@ -69,6 +74,7 @@ registry = Registry()
 log_server = memcache.Client( [ MEMCACHED_SERVER ] )
 
 def _debug(msg):  
+    """Stores debugging message in the memcached log server"""
     messages = log_server.get('job_debug')  
     if not messages:
         messages = []
@@ -77,6 +83,7 @@ def _debug(msg):
     return True
 
 def get_object_age(date_value):
+    """Generic method returning time delta for given date (in seconds)"""
     delta = datetime.datetime.now() - date_value
     return delta.days * 86400 + delta.seconds
 
