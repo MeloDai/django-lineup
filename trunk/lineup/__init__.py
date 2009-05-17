@@ -3,7 +3,7 @@ __all__ = ['registry',]
 
 from django.core.cache import cache
 from lineup.conf import *
-import memcache, datetime
+import datetime
 
 class Job(object):
     """Basic abstraction layer for a single queue task."""
@@ -71,15 +71,15 @@ class Registry(object):
 
 registry = Registry()        
 
-log_server = memcache.Client( [ MEMCACHED_SERVER ] )
+# log_server = memcache.Client( [ MEMCACHED_SERVER ] )
 
 def _debug(msg):  
     """Stores debugging message in the memcached log server"""
-    messages = log_server.get('job_debug')  
+    messages = cache.get('job_debug')  
     if not messages:
         messages = []
     messages.append('[JOB] %s' % msg)    
-    log_server.set('job_debug', messages)
+    cache.set('job_debug', messages)
     return True
 
 def get_object_age(date_value):

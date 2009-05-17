@@ -1,17 +1,17 @@
-import os, datetime, logging, pp, traceback, memcache
+import os, datetime, logging, pp, traceback
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 from lineup.models import Queue
 from lineup.conf import *
 from lineup import registry, get_object_age
 from django.conf import settings
-
+from django.core.cache import cache
 logging.basicConfig()
 log = logging.getLogger("queue")
 log.setLevel(logging.DEBUG)
 
 job_server = pp.Server(1, ( JOB_SERVER ,))
-log_server = memcache.Client( [ MEMCACHED_SERVER ] )
+# log_server = memcache.Client( [ MEMCACHED_SERVER ] )
 
 queue_capacity = 0
 
@@ -82,11 +82,11 @@ def process_queued_requests():
 def collect_job_debug():
     """Memcached debug log reader"""
     try:
-        messages = log_server.get("job_debug")  
+        messages = cache.get("job_debug", None)  
         if messages:
             for message in messages:
                 log.info(message)
-            log_server.delete('job_debug')                  
+            cache.delete('job_debug')                  
     except:
         print '@ exc'
         exc = traceback.format_exc()
