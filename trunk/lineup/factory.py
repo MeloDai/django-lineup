@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from django.db import transaction
 from lineup.models import Queue, QueueParam
 from lineup.conf import Status
+from lineup import _debug
     
 class JobFactory(object):
     """Instance of this class should be used by your application(s) to create queued jobs."""
@@ -21,7 +22,8 @@ class JobFactory(object):
             q = Queue()
             q.job = job
             q.user = user
-            q.context_object = context_object
+            if context_object:
+                q.context_object = context_object
             q.status = status
             q.save()
         
