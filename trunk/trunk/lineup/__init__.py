@@ -50,7 +50,8 @@ class Registry(object):
         registered_jobs property."""
         _registry = cache.get('job_registry', None)
         if _registry:
-            print 'Got registry from cache! yay', _registry
+            #print 'Got registry from cache! yay', _registry
+            pass
         else:
             _registry = self.registry
         jobs = []
